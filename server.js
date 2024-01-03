@@ -1,4 +1,4 @@
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const express = require("express");
 const app = express();
 const port = process.env.PORT || 3001;
@@ -31,6 +31,14 @@ async function run() {
     app.get("/products", async (req, res) => {
       const result = await productsCollection.find().toArray();
       res.send({ result, totalProducts: result.length });
+    });
+
+    // get Single Product
+    app.get("/products/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const result = await productsCollection.findOne(filter);
+      res.send(result);
     });
   } catch (err) {
     console.error(`An error occurred${err}`);
