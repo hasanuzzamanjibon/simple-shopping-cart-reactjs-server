@@ -40,6 +40,18 @@ async function run() {
       const result = await productsCollection.findOne(filter);
       res.send(result);
     });
+
+    // get categorywise Product
+    app.get("/products/category/:category", async (req, res) => {
+      const category = req.params?.category;
+      console.log(category);
+      let query = {};
+      if (category) {
+        query = { category: category };
+      }
+      const result = await productsCollection.find(query).toArray();
+      res.send(result);
+    });
   } catch (err) {
     console.error(`An error occurred${err}`);
   }
