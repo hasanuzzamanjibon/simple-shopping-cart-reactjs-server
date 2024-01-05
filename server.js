@@ -27,6 +27,12 @@ async function run() {
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
 
     const productsCollection = client.db("Shopping_Cart").collection("productsDB");
+    const usersCollection = client.db("Shopping_Cart").collection("usersDB");
+    // get all users
+    app.get("/users", async (req, res) => {
+      const result = await usersCollection.find().toArray();
+      res.send({ result, totalUsers: result.length });
+    });
     // get all products
     app.get("/products", async (req, res) => {
       const result = await productsCollection.find().toArray();
@@ -44,7 +50,7 @@ async function run() {
     // get categorywise Product
     app.get("/products/category/:category", async (req, res) => {
       const category = req.params?.category;
-      console.log(category);
+
       let query = {};
       if (category) {
         query = { category: category };
