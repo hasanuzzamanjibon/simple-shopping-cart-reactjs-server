@@ -58,6 +58,13 @@ async function run() {
       const result = await productsCollection.find(query).toArray();
       res.send(result);
     });
+
+    // add new user
+    app.post("/addUser", async (req, res) => {
+      const newUser = req.body;
+      const result = await usersCollection.insertOne(newUser);
+      res.send(result);
+    });
   } catch (err) {
     console.error(`An error occurred${err}`);
   }
