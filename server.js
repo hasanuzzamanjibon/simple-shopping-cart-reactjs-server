@@ -12,15 +12,19 @@ app.use(cors());
 
 const verifyJWT = (req, res, next) => {
   const authorization = req.headers.authorization;
+
   if (!authorization) {
     return res.status(401).send({ message: "Unauthorized Access", error: true });
   }
   const token = authorization.split(" ")[1];
+ 
+
   jwt.verify(token, process.env.ACCESS_TOKEN, (err, decoded) => {
     if (err) {
       return res.status(403).send({ message: "Unauthorised Access", error: true });
     }
     req.decoded = decoded;
+   
     next();
   });
 };
@@ -43,6 +47,11 @@ async function run() {
 
     const productsCollection = client.db("Shopping_Cart").collection("productsDB");
     const usersCollection = client.db("Shopping_Cart").collection("usersDB");
+    app.post("/jwt", (req, res) => {
+      const user = req.body;
+      const token = jwt.sign(user, process.env.ACCESS_TOKEN, { expiresIn: "2h" });
+      res.send({ token });
+    });
     // get all users
     app.get("/users", async (req, res) => {
       const result = await usersCollection.find().toArray();
@@ -59,6 +68,20 @@ async function run() {
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) };
       const result = await productsCollection.findOne(filter);
+      res.send(result);
+    });
+    // get product by query email
+    app.get("/product", verifyJWT, async (req, res) => {
+      const decoded = req.decoded;
+    
+      const email = req.query?.email;
+      if (!email) {
+        return res.send([]);
+      }
+      if (decoded?.email != email) {
+        return res.status(401).send({ message: "Unauthorised Access", error: true });
+      }
+      const result = await productsCollection.find({ email: email }).toArray();
       res.send(result);
     });
 
@@ -79,12 +102,6 @@ async function run() {
       const newUser = req.body;
       const result = await usersCollection.insertOne(newUser);
       res.send(result);
-    });
-
-    app.post("/jwt", (req, res) => {
-      const user = req.body;
-      const token = jwt.sign(user, process.env.ACCESS_TOKEN, { expiresIn: "2h" });
-      res.send({ token });
     });
   } catch (err) {
     console.error(`An error occurred${err}`);
